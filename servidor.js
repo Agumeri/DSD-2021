@@ -11,7 +11,7 @@ var mimeTypes = { "html": "text/html", "jpeg": "image/jpeg", "jpg": "image/jpeg"
 var httpServer = http.createServer(
 	function(request, response) {
 		var uri = url.parse(request.url).pathname;
-		if (uri=="/") uri = "/cliente.html";
+		if (uri=="/") uri = "/servidor.html";
 		var fname = path.join(process.cwd(), uri);
 		fs.exists(fname, function(exists) {
 			if (exists) {
@@ -39,16 +39,23 @@ var httpServer = http.createServer(
 		});
 	}
 );
-httpServer.listen(8000);
-var io = socketio(httpServer);
 
 
 MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUnifiedTopology: true}, function(err, db) {
+	httpServer.listen(8000);
+	var io = socketio(httpServer);
 	var dbo = db.db("pruebaBaseDatos");
-	dbo.collection("test", function(err, collection){
-		io.sockets.on('connection',
-		function(client) {
 
+	dbo.collection("temperaturas", function(err, collection){
+		io.sockets.on('connection', function(client) {
+			client.on('nueva_temperatura', function(data){
+				collection.insertOne(data,{safe: true}, function(err,result){});
+				console.log("Se ha añadido un nuevo conjunto de temperaturas a la BD");
+			});
+			client.on('reset', function(data){
+				collection.drop();
+				console.log("Un cliente ha reseteado la BD");
+			})
 		});
     });
 });
