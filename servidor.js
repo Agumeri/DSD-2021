@@ -11,7 +11,7 @@ var mimeTypes = { "html": "text/html", "jpeg": "image/jpeg", "jpg": "image/jpeg"
 var httpServer = http.createServer(
 	function(request, response) {
 		var uri = url.parse(request.url).pathname;
-		if (uri=="/") uri = "/servidor.html";
+		if (uri=="/") uri = "/sensor.html";
 		var fname = path.join(process.cwd(), uri);
 		fs.exists(fname, function(exists) {
 			if (exists) {
@@ -46,12 +46,42 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 	var io = socketio(httpServer);
 	var dbo = db.db("pruebaBaseDatos");
 
-	dbo.collection("temperaturas", function(err, collection){
+	dbo.collection("datos_sensores", function(err, collection){
 		io.sockets.on('connection', function(client) {
+
+			// Actualizar valores de temperatura
 			client.on('nueva_temperatura', function(data){
-				collection.insertOne(data,{safe: true}, function(err,result){});
-				console.log("Se ha añadido un nuevo conjunto de temperaturas a la BD");
+				collection.updateOne({"Tipo": "temperatura"},
+				{
+					$set: {
+							'tmin': data.min,
+							'tmax': data.max
+						  }
+				});
+				console.log("Se ha actualizado la temperatura");
 			});
+
+			// Actualizar valores de luminosidad
+			client.on('nueva_luminosidad', function(data){
+				collection.updateOne({"Tipo": "luminosidad"},
+				{
+					$set: {
+							'lmin': data.min,
+							'lmax': data.max
+						  }
+				});
+				console.log("Se ha actualizado la luminosidad");
+			});
+
+			// Obtener datos de la base de datos
+			client.on('obtener', function (data) {
+				collection.find().toArray(function(err, results){
+					client.emit('obtener', results);
+					console.log(results);
+				});
+			});
+
+			// Resetear la base de datos 
 			client.on('reset', function(data){
 				collection.drop();
 				console.log("Un cliente ha reseteado la BD");
@@ -61,4 +91,4 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 });
 
 console.log("Servicio MongoDB iniciado");
-console.log("Acceder al servidor mediante localhost:8000");
+console.log("Acceder al servidor sensor localhost:8000");
