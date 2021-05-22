@@ -1,0 +1,44 @@
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="refresh" content="10">
+	<title>Usuario</title>
+	<script type='text/javascript' src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <h1>Usuario</h1>
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+    // var serviceURL = document.URL;
+    var serviceURL = "http://localhost:8000/";
+	var socket = io.connect(serviceURL);
+
+    // Obtenemos los datos de la BD
+        socket.emit('obtener');
+        socket.on('obtener', function (data) {
+            data.forEach(function (sensor) {
+                if (sensor.Tipo == "temperatura") {
+                    console.log("Temperatura")
+                    console.log("Minimo: " + sensor.tmin + "  Maximo: " + sensor.tmax);
+                } else if (sensor.Tipo == "luminosidad") {
+                    console.log("Luminosidad")
+                    console.log("Minimo: " + sensor.lmin + "  Maximo: " + sensor.lmax);
+                }
+            });
+        });
+    //
+    </script>
+
+
+</html>

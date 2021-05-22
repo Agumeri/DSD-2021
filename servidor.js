@@ -11,7 +11,8 @@ var mimeTypes = { "html": "text/html", "jpeg": "image/jpeg", "jpg": "image/jpeg"
 var httpServer = http.createServer(
 	function(request, response) {
 		var uri = url.parse(request.url).pathname;
-		if (uri=="/") uri = "/sensor.html";
+		if (uri=="/sensor") uri = "/sensor.html"
+		else if (uri=="/usuario") uri = "/usuario.html";
 		var fname = path.join(process.cwd(), uri);
 		fs.exists(fname, function(exists) {
 			if (exists) {
@@ -41,9 +42,9 @@ var httpServer = http.createServer(
 );
 
 
+httpServer.listen(8000);
+var io = socketio(httpServer);
 MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUnifiedTopology: true}, function(err, db) {
-	httpServer.listen(8000);
-	var io = socketio(httpServer);
 	var dbo = db.db("pruebaBaseDatos");
 
 	dbo.collection("datos_sensores", function(err, collection){
@@ -91,5 +92,7 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 });
 
 console.log("Servicio MongoDB iniciado");
-console.log("Sensor lanzado en localhost:8000");
-console.log("Usuario lancado en localhost:8001");
+console.log("Servidor escuchando en el puerto 8000");
+console.log("\nRutas disponibles")
+console.log("Sensor --> localhost:8000/sensor");
+console.log("Usuario --> localhost:8000/usuario");
