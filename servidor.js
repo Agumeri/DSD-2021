@@ -54,8 +54,8 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 				collection.updateOne({"Tipo": "temperatura"},
 				{
 					$set: {
-							'tmin': data.min,
-							'tmax': data.max
+							'tmin': data.tmin,
+							'tmax': data.tmax
 						  }
 				});
 				console.log("Se ha actualizado la temperatura");
@@ -66,8 +66,8 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 				collection.updateOne({"Tipo": "luminosidad"},
 				{
 					$set: {
-							'lmin': data.min,
-							'lmax': data.max
+							'lmin': data.lmin,
+							'lmax': data.lmax
 						  }
 				});
 				console.log("Se ha actualizado la luminosidad");
@@ -77,7 +77,7 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 			client.on('obtener', function (data) {
 				collection.find().toArray(function(err, results){
 					client.emit('obtener', results);
-					console.log(results);
+					// console.log(results);
 				});
 			});
 
@@ -91,4 +91,5 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 });
 
 console.log("Servicio MongoDB iniciado");
-console.log("Acceder al servidor sensor localhost:8000");
+console.log("Sensor lanzado en localhost:8000");
+console.log("Usuario lancado en localhost:8001");

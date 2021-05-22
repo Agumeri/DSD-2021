@@ -2,41 +2,42 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="refresh" content="30">
 	<title>Sensor</title>
 	<script type='text/javascript' src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
-		integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-		crossorigin="anonymous"></script>
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
 </head>
 
 <body>
-	<div class="col-md-3">
+	<h1 style="padding-left: 1.2%">Sensor</h1>
+	<div class="col-md-4">
 		<form>
-			<h1>Datos temperatura</h1>
+			<h2>Datos temperatura</h2>
 			<label for="Tmax">Temperatura máxima:</label><br>
-			<input type="text" id="Tmax" name="Tmax" value="20"><br>
+			<input type="text" id="Tmax" name="Tmax"><br>
 			<label for="Tmin">Temperatura mínima:</label><br>
-			<input type="text" id="Tmin" name="Tmin" value="5"><br><br>
+			<input type="text" id="Tmin" name="Tmin"><br><br>
 			<input type="button" onclick="actualizaTemperatura()" value="Actualizar temperatura">
 		</form>
 	</div>
-	<div class="col-md-3">
+	<div class="col-md-4">
 		<form>
-			<h1>Datos luminosidad</h1>
+			<h2>Datos luminosidad</h2>
 			<label for="Lmax">Luminosidad máxima:</label><br>
-			<input type="text" id="Lmax" name="Lmax" value="32"><br>
+			<input type="text" id="Lmax" name="Lmax"><br>
 			<label for="Lmin">Luminosidad mínima:</label><br>
-			<input type="text" id="Lmin" name="Lmin" value="2"><br><br>
+			<input type="text" id="Lmin" name="Lmin"><br><br>
 			<input type="button" onclick="actualizaLuminosidad()" value="Actualizar luminosidad">
 		</form>
 	</div>
-
+	<!-- <div class="col-md-3" id="obtener"></div> -->
 	<!-- <input type="button" onclick="resetearBD()" value="Resetear BD de Mongo"></button> -->
-
 </body>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -58,22 +59,24 @@
 			}
 		);
 		alert('Temperatura actualizada');
+		location.reload();
 	}
 
 	function actualizaLuminosidad() {
 		var d = new Date();
 		var min = document.getElementById("Lmin").value;
 		var max = document.getElementById("Lmax").value;
-
+		console.log("Min: " + min + "  Max: "+ max);
 		socket.emit('nueva_luminosidad',
 			{
+				Time: d,
 				lmin: min,
 				lmax: max,
-				Time: d,
 				Tipo: "luminosidad"
 			}
 		);
 		alert('Luminosidad actualizada');
+		location.reload();
 	}
 
 	function resetearBD() {
@@ -84,9 +87,22 @@
 	}
 
 	// Obtenemos los datos de la BD
-		var datos = []
-		socket.emit('obtener',datos)
-		console.log(datos);
+		socket.emit('obtener')
+		socket.on('obtener', function(data) {
+			data.forEach(function(sensor) {
+				if(sensor.Tipo == "temperatura"){
+					console.log("Temperatura")
+					console.log("Minimo: " + sensor.tmin + "  Maximo: " + sensor.tmax);
+					document.getElementById('Tmax').value = sensor.tmax;
+					document.getElementById('Tmin').value = sensor.tmin;
+				}else if(sensor.Tipo == "luminosidad"){
+					console.log("Luminosidad")
+					console.log("Minimo: " + sensor.lmin + "  Maximo: " + sensor.lmax);
+					document.getElementById('Lmax').value = sensor.lmax;
+					document.getElementById('Lmin').value = sensor.lmin;
+				}
+			});
+		});
 	//
 </script>
 
