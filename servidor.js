@@ -87,6 +87,11 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 				collection.drop();
 				console.log("Un cliente ha reseteado la BD");
 			})
+
+			// Conexion
+			// client.on('conn-sens', function(data){
+			// 	console.log("Un sensor se ha conectado al servidor");
+			// })
 		});
     });
 });
