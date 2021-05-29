@@ -2,7 +2,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta http-equiv="refresh" content="10">
+    <!-- <meta http-equiv="refresh" content="10"> -->
     <title>Usuario</title>
     <script type='text/javascript' src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <h1 style="padding-left: 1.2%">Usuario</h1>
+    <h1 style="padding-left: 1.2%; padding-bottom: 1%;">Usuario</h1>
     <div class="row">
         <div class="col-sm-5 col-md-3" style="padding-left:2%">
             <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
@@ -28,7 +28,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-5 col-md-3">
+        <div class="col-sm-5 col-md-3" >
             <div class="card text-white bg-warning mb-3" style="max-width: 18rem;">
                 <div class="card-header" style="height: 13.5em;">
                     <p style="text-align: center;">Luminosidad</p>
@@ -45,34 +45,113 @@
             </div>
         </div>
     </div>
+    <div class="container" style="margin-right:40%">
+        <div class="row">
+            <div class="col">
+                <div class="card border-info" style="width: 41.5rem">
+                    <div class="card-header">Actuadores</div>
+                    <div class="card-body text-info">
+                        <div class="row">
+                            <div class="col">
+                                <h5 class="card-title" id="ePers">Persiana: </h5>
+                                <button id="bPers" type="button" class="btn btn-info" onclick="persiana()"></button>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title" id="eAire">Aire Acondicionado: </h5>
+                                <button id="bAire" type="button" class="btn btn-info" onclick="aire()"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <input type="chexbox" id="trampilla" onclick="actualizar()" style="display: none"></input>
 </body>
 
 <script src="/socket.io/socket.io.js"></script>
 <script type="text/javascript">
-    // var serviceURL = document.URL;
-    var serviceURL = "http://localhost:8000/";
-    var socket = io.connect(serviceURL);
+    // Variables utilizadas
+        var serviceURL = "http://localhost:8000/";
+        var socket = io.connect(serviceURL);
+        var actuadores = {persiana: false, aire: false}
+    //
 
     // Obtenemos los datos de la BD
-    socket.emit('obtener');
-    socket.on('obtener', function (data) {
+    // socket.emit('obtener');
+    socket.on('obtener', function(data){
+        actualizarValores(data);
+    });
+
+    function actualizarValores(data){
         data.forEach(function (sensor) {
             if (sensor.Tipo == "temperatura") {
-                console.log("Temperatura")
-                console.log("Minimo: " + sensor.tmin + "  Maximo: " + sensor.tmax);
-
-                document.getElementById("temp_max").innerHTML = "Temperatura maxima: " + sensor.tmax;
-                document.getElementById("temp_min").innerHTML = "Temperatura minima: " + sensor.tmin;
+                // console.log("Temperatura")
+                // console.log("Minimo: " + sensor.tmin + "  Maximo: " + sensor.tmax);
+    
+                document.getElementById("temp_max").innerHTML = "Temperatura maxima: " + sensor.tmax + "ºC";
+                document.getElementById("temp_min").innerHTML = "Temperatura minima: " + sensor.tmin + "ºC";
             } else if (sensor.Tipo == "luminosidad") {
-                console.log("Luminosidad")
-                console.log("Minimo: " + sensor.lmin + "  Maximo: " + sensor.lmax);
+                // console.log("Luminosidad")
+                // console.log("Minimo: " + sensor.lmin + "  Maximo: " + sensor.lmax);
+    
+                document.getElementById("lum_max").innerHTML = "Luminosidad maxima: " + sensor.lmax + "%";
+                document.getElementById("lum_min").innerHTML = "Luminosidad minima: " + sensor.lmin + "%";
+            } else if (sensor.Tipo == "actuadores"){
+                if(sensor.persiana == false){
+                    document.getElementById("ePers").innerHTML = "Persiana: cerrada";
+                    document.getElementById("ePers").style.color = "#D62A2A";
+                    
+                    document.getElementById("bPers").innerHTML = "Abrir persiana";
+                }else{
+                    document.getElementById("ePers").innerHTML = "Persiana: abierta";
+                    document.getElementById("ePers").style.color = "#5DEF35";
+                    
+                    document.getElementById("bPers").innerHTML = "Cerrar persiana";
+                }
+                
+                if(sensor.aire_acondicionado == false){
+                    document.getElementById("eAire").innerHTML = "Aire Acondicionado: cerrada";
+                    document.getElementById("eAire").style.color = "#D62A2A";
 
-                document.getElementById("lum_max").innerHTML = "Luminosidad maxima: " + sensor.lmax;
-                document.getElementById("lum_min").innerHTML = "Luminosidad minima: " + sensor.lmin;
+                    document.getElementById("bAire").innerHTML = "Encender aire";
+                }else{
+                    document.getElementById("eAire").innerHTML = "Aire Acondicionado: abierta";
+                    document.getElementById("eAire").style.color = "#5DEF35";
+                    
+                    document.getElementById("bAire").innerHTML = "Apagar aire";
+                }
+                
+                actuadores.persiana = sensor.persiana;
+                actuadores.aire = sensor.aire_acondicionado;
             }
         });
-    });
-    //
+    }
+
+    function persiana(){
+        if(actuadores.persiana){
+            actuadores.persiana = false;
+        }else{
+            actuadores.persiana = true;
+        }
+        actualizarActuadores(actuadores);
+    }
+
+    function aire(){
+        if(actuadores.aire){
+            actuadores.aire = false;
+        }else{
+            actuadores.aire = true;
+        }
+        actualizarActuadores(actuadores);
+    }
+
+    function actualizarActuadores(){
+        socket.emit('actualizarActuadores',actuadores)
+    }
 </script>
 
 
