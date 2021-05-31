@@ -45,6 +45,7 @@
             </div>
         </div>
     </div>
+    
     <div class="container" style="margin-right:40%">
         <div class="row">
             <div class="col">
@@ -53,19 +54,29 @@
                     <div class="card-body text-info">
                         <div class="row">
                             <div class="col">
-                                <h5 class="card-title" id="ePers">Persiana: </h5>
-                                <button id="bPers" type="button" class="btn btn-info" onclick="persiana()"></button>
-                            </div>
-                            <div class="col">
                                 <h5 class="card-title" id="eAire">Aire Acondicionado: </h5>
                                 <button id="bAire" type="button" class="btn btn-info" onclick="aire()"></button>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title" id="ePers">Persiana: </h5>
+                                <button id="bPers" type="button" class="btn btn-info" onclick="persiana()"></button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="col col-lg-4">
+                <div class="card border-info" style="width: 40rem">
+                    <div class="card-header">Mensajes log</div>
+                    <div id="log" class="card-body text-info" style="width: 40rem; height: 7rem; overflow: auto">
+                    </div>
+                </div>
+            </div>
         </div>
+    
     </div>
+    <!-- <div class="container" style="margin-right:40%">
+    </div> -->
 
 
 
@@ -78,11 +89,16 @@
         var serviceURL = "http://localhost:8000/";
         var socket = io.connect(serviceURL);
         var actuadores = {persiana: false, aire: false}
+        var mensajes_log = [];
     //
 
     // Obtenemos los datos de la BD
     // socket.emit('obtener');
+    // socket.emit('log');
     socket.on('obtener', function(data){
+        socket.on('log',function(logs){
+            mensajes_log = logs;
+        });
         actualizarValores(data);
     });
 
@@ -114,12 +130,12 @@
                 }
                 
                 if(sensor.aire_acondicionado == false){
-                    document.getElementById("eAire").innerHTML = "Aire Acondicionado: cerrada";
+                    document.getElementById("eAire").innerHTML = "Aire Acondicionado: apagado";
                     document.getElementById("eAire").style.color = "#D62A2A";
 
                     document.getElementById("bAire").innerHTML = "Encender aire";
                 }else{
-                    document.getElementById("eAire").innerHTML = "Aire Acondicionado: abierta";
+                    document.getElementById("eAire").innerHTML = "Aire Acondicionado: encendido";
                     document.getElementById("eAire").style.color = "#5DEF35";
                     
                     document.getElementById("bAire").innerHTML = "Apagar aire";
@@ -129,6 +145,18 @@
                 actuadores.aire = sensor.aire_acondicionado;
             }
         });
+
+        // Actualizamos la caja con los mensajes log del servidor
+        var listContainer = document.getElementById('log');
+        listContainer.innerHTML = '';
+        var listElement = document.createElement('ul');
+        listContainer.appendChild(listElement);
+        var num = mensajes_log.length;
+        for(let i=0; i<num; i++){
+            var listItem = document.createElement('li');
+            listItem.innerHTML = JSON.stringify(mensajes_log[i]);
+            listElement.appendChild(listItem);
+        }
     }
 
     function persiana(){

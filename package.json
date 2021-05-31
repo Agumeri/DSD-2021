@@ -1,12 +1,12 @@
 {
-  "name": "mongoserver",
+  "name": "agente_domotico",
   "version": "1.0.0",
   "description": "Prueba para conectar server nodejs a mongodb",
   "main": "servidor.js",
   "scripts": {
     "start": "node servidor.js"
   },
-  "author": "",
+  "author": "Agustin Merida Gutierrez",
   "license": "ISC",
   "dependencies": {
     "mongodb": "^3.6.6",

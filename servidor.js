@@ -12,15 +12,15 @@ var mimeTypes = { "html": "text/html", "jpeg": "image/jpeg", "jpg": "image/jpeg"
 var TEMP_MAX = "100";
 var TEMP_MIN = "0";
 var LUM_MAX = "100";
-var LUM_MIN = "0";
+var LUM_MIN = "10";
 
-var tmax;
-var tmin;
-var lmax;
-var lmin;
+var tmax="20";
+var tmin="20";
+var lmax="20";
+var lmin="20";
 //
-
-var log = "";
+// Array para mostrar cambios en el cuadro de cambios en el usuario
+var log = [];
 
 // Valores de los actuadores
 // Apagado/Cerrada == false
@@ -33,25 +33,26 @@ function agente_sistema(){
 	let t = Date.now()
 
 	// Administramos temperatura
-	if (tmax >= TEMP_MAX){
+	if (parseInt(tmax) >= parseInt(TEMP_MAX)){
 		aire_acondicionado = true;
-		tmax = 27;
-		log = t + ": Se ha encendido el aire acondicionado. Que calor hace!!!\n";
-	} else if(tmin <= TEMP_MIN){
+		tmax = "27";
+		log.push(t + ": Se ha encendido el aire acondicionado. Que calor hace!!!");
+		log.push("Temperatura actual: 27ºC");
+	} else if(parseInt(tmin) <= parseInt(TEMP_MIN)){
 		aire_acondicionado = false;
-		tmin = 5;
-		log = t + ": Apagando el aire acondicionado, que hace fresquete";
+		tmin = "5";
+		log.push(t + ": Apagando el aire acondicionado, que hace fresquete");
 	}
 
 	// Administramos luminosidad
-	if (lmax >= LUM_MAX){
+	if (parseInt(lmax) >= parseInt(LUM_MAX)){
 		persiana = false;
-		lmax = 80;
-		log = t + ": Demasiada luz, cerrando la persiana";
-	} else if(lmin <= LUM_MIN){
+		lmax = "80";
+		log.push(t + ": Demasiada luz, cerrando la persiana");
+	} else if(parseInt(lmin) <= parseInt(LUM_MIN)){
 		persiana = true;
-		lmin = 10
-		log = t + ": Abriendo la persiana, que esto parece una cueva";
+		lmin = "20"
+		log.push(t + ": Abriendo la persiana, que esto parece una cueva");
 	}
 }
 
@@ -60,6 +61,7 @@ var httpServer = http.createServer(
 		var uri = url.parse(request.url).pathname;
 		if (uri=="/sensor") uri = "/sensor.html"
 		else if (uri=="/usuario") uri = "/usuario.html";
+		else if (uri=="/") uri = "usuario.html";
 		var fname = path.join(process.cwd(), uri);
 		fs.exists(fname, function(exists) {
 			if (exists) {
@@ -93,28 +95,29 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 	httpServer.listen(8000);
 	var io = socketio(httpServer);
 	var dbo = db.db("pruebaBaseDatos");
-	var datos = {};
+	var datos = [];
 	// filtro pa ver si existe la BD 
 	dbo.collection("datos_sensores", function(err, collection){
 		
 		io.sockets.on('connection', function(client) {
 			recogerDatos();
-			client.emit('obtener',datos);
-			
+			io.emit('obtener',datos);
+			// io.emit('log',log);
+
 			// Actualizar valores de temperatura
 			client.on('nueva_temperatura', function(data){
 				tmax =data.tmax;
 				tmin =data.tmin;
 
-				collection.updateOne({"Tipo": "temperatura"},
-				{
-					$set: {
-							'tmin': data.tmin,
-							'tmax': data.tmax
-						  }
-				});
+				// collection.updateOne({"Tipo": "temperatura"},
+				// {
+				// 	$set: {
+				// 			'tmin': data.tmin,
+				// 			'tmax': data.tmax
+				// 		  }
+				// });
 				let t = Date.now()
-				log = t + ": Se ha actualizado la temperatura a " + tmax + "%\n";
+				log.push(t + ": Se ha actualizado la temperatura a " + tmax + "ºC");
 				
 				actualizar();
 			});
@@ -124,15 +127,15 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 				lmax =data.lmax;
 				lmin =data.lmin;
 
-				collection.updateOne({"Tipo": "luminosidad"},
-				{
-					$set: {
-							'lmin': data.lmin,
-							'lmax': data.lmax
-						  }
-				});
+				// collection.updateOne({"Tipo": "luminosidad"},
+				// {
+				// 	$set: {
+				// 			'lmin': data.lmin,
+				// 			'lmax': data.lmax
+				// 		  }
+				// });
 				let t = Date.now()
-				log = t + ": Se ha actualizado la luminosidad a " + lmax + "%\n";
+				log.push(t + ": Se ha actualizado la luminosidad a " + lmax + "%");
 				
 				actualizar();
 			});
@@ -142,18 +145,6 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 				persiana = data.persiana;
 				aire_acondicionado = data.aire;
 
-				collection.updateOne({"Tipo": "actuadores"},
-				{
-					$set: {
-							'persiana': persiana,
-							'aire_acondicionado': aire_acondicionado
-						  }
-				});
-				actualizar();
-			});
-
-			// Recoger datos de la BD
-			function recogerDatos(){
 				// collection.updateOne({"Tipo": "actuadores"},
 				// {
 				// 	$set: {
@@ -161,35 +152,79 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 				// 			'aire_acondicionado': aire_acondicionado
 				// 		  }
 				// });
-				
+				actualizar();
+				let t = Date.now()
+				log.push(t + ": Se ha actualizado el estado de los actuadores");
+			});
+
+			client.on('log',function(logs){
+				var data = log;
+				io.emit('log',data);
+			})
+
+			// Recoger datos de la BD
+			function recogerDatos(){
 				collection.find().toArray(function(err, results){
-					io.emit('obtener', results);
+					// Asignamos datos
 					datos = results;
+					io.emit('obtener', datos);
+					for(let i=0; i<results.length; i++){
+						if (results[i].Tipo == "temperatura") {
+							tmax = results[i].tmax;
+							tmin = results[i].tmin;
+						} else if (results[i].Tipo == "luminosidad") {
+							lmax = results[i].lmax;
+							lmin = results[i].lmin;
+						} else if (results[i].Tipo == "actuadores"){
+							persiana = results[i].persiana
+							aire_acondicionado = results[i].aire_acondicionado;
+						}
+					}
 				});
 				
+				
 			}
 
-			// Actualizar valores en el cliente
+			// Actualizar valores en la BD y en el cliente
 			function actualizar(){
+				agente_sistema();
+				asignarVariables();
 				recogerDatos();
-				// agente_sistema();
-				io.emit('obtener', datos);
 
+				io.emit('obtener', datos);				
+				io.emit('log',log);
 			}
 
+			// Actualizamos en la base de datos con todos los valores actualizados
+			// una vez pasados por el agente del sistema
+			function asignarVariables(){
+				// Temperatura
+				collection.updateOne({"Tipo": "temperatura"},
+				{
+					$set: {
+							'tmin': tmin,
+							'tmax': tmax
+						  }
+				});
 
-			// Obtener datos de la base de datos
-			// client.on('obtener', function (data) {
-			// 	collection.find().toArray(function(err, results){
-			// 		client.emit('obtener', results);
-			// 		// console.log(results);
-			// 	});
-			// });
+				// Luminosidad
+				collection.updateOne({"Tipo": "luminosidad"},
+				{
+					$set: {
+							'lmin': lmin,
+							'lmax': lmax
+						  }
+				});
 
-			// Conexion
-			// client.on('conn-sens', function(data){
-			// 	console.log("Un sensor se ha conectado al servidor");
-			// })
+				// Actuadores
+				collection.updateOne({"Tipo": "actuadores"},
+				{
+					$set: {
+							'persiana': persiana,
+							'aire_acondicionado': aire_acondicionado
+						  }
+				});
+			}
 		});
     });
 });
@@ -199,3 +234,4 @@ console.log("Servidor escuchando en el puerto 8000");
 console.log("\nRutas disponibles")
 console.log("Sensor --> localhost:8000/sensor");
 console.log("Usuario --> localhost:8000/usuario");
+
