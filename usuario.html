@@ -44,6 +44,16 @@
                 </div>
             </div>
         </div>
+        <div class="col-sm-5 col-md-3" >
+            <div class="card bg-light mb-3" style="max-width: 18rem;">
+                <div class="card-header" style="height: 13.5em;">
+                    <p style="text-align: center;">Enviar información al admin</p>
+                    <!-- <button type="button" class="btn btn-info" onclick="enviarMensaje()">Enviar</button> -->
+                </div>
+                <div class="card-body">
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="container" style="margin-right:40%">
@@ -80,7 +90,7 @@
 
 
 
-    <input type="chexbox" id="trampilla" onclick="actualizar()" style="display: none"></input>
+    <!-- <input type="chexbox" id="trampilla" onclick="actualizar()" style="display: none"></input> -->
 </body>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -143,6 +153,7 @@
                 
                 actuadores.persiana = sensor.persiana;
                 actuadores.aire = sensor.aire_acondicionado;
+                // actualizarActuadores();
             }
         });
 
@@ -180,6 +191,11 @@
     function actualizarActuadores(){
         socket.emit('actualizarActuadores',actuadores)
     }
+
+    // function enviarMensaje(){
+    //     socket.emit('enviar_mensaje');
+    //     alert("Se ha enviado un mensaje con la información actual al correo agumeri003@hotmail.com")
+    // }
 </script>
 
 

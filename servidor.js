@@ -3,6 +3,8 @@ var url = require("url");
 var fs = require("fs");
 var path = require("path");
 var socketio = require("socket.io");
+var weather = require("weather-js");
+// var nodemailer = require("nodemailer");
 
 var MongoClient = require('mongodb').MongoClient;
 var MongoServer = require('mongodb').Server;
@@ -21,6 +23,7 @@ var lmin="20";
 //
 // Array para mostrar cambios en el cuadro de cambios en el usuario
 var log = [];
+var firstTime = true;
 
 // Valores de los actuadores
 // Apagado/Cerrada == false
@@ -91,19 +94,54 @@ var httpServer = http.createServer(
 );
 
 
+httpServer.listen(8000);
+var io = socketio(httpServer);
+
+weather.find(
+	{
+		search: 'Priego de Córdoba, España',
+		degreeType: 'C'
+	}, 
+	function(err,result){
+		if(err) console.log(err);
+		// console.log(JSON.stringify(result,null,2));
+		console.log(result);
+	}
+);
+
 MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUnifiedTopology: true}, function(err, db) {
-	httpServer.listen(8000);
-	var io = socketio(httpServer);
 	var dbo = db.db("pruebaBaseDatos");
 	var datos = [];
+	
 	// filtro pa ver si existe la BD 
+	
+	//
+
 	dbo.collection("datos_sensores", function(err, collection){
 		
 		io.sockets.on('connection', function(client) {
 			recogerDatos();
+			
+			// if(datos.length == 0 && firstTime){
+			// 	collection.insertOne({
+			// 		"Tipo": "temperatura",
+			// 		'tmin': tmin,
+			// 		'tmax': tmax
+			// 	});
+			// 	collection.insertOne({
+			// 		"Tipo": "luminosidad",
+			// 		'lmin': lmin,
+			// 		'lmax': lmax
+			// 	});
+			// 	collection.insertOne({
+			// 		"Tipo": "actuadores",
+			// 		'persiana': persiana,
+			// 		'aire_acondicionado': aire_acondicionado
+			// 	});
+			// 	firstTime = false;
+			// }
 			io.emit('obtener',datos);
-			// io.emit('log',log);
-
+			
 			// Actualizar valores de temperatura
 			client.on('nueva_temperatura', function(data){
 				tmax =data.tmax;
@@ -164,10 +202,13 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 
 			// Recoger datos de la BD
 			function recogerDatos(){
+				var res = false;; 
+
 				collection.find().toArray(function(err, results){
 					// Asignamos datos
 					datos = results;
 					io.emit('obtener', datos);
+
 					for(let i=0; i<results.length; i++){
 						if (results[i].Tipo == "temperatura") {
 							tmax = results[i].tmax;
@@ -181,7 +222,6 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 						}
 					}
 				});
-				
 				
 			}
 
@@ -225,6 +265,32 @@ MongoClient.connect("mongodb://localhost:27017/", {useNewUrlParser: true, useUni
 						  }
 				});
 			}
+
+			// var transporter = nodemailer.createTransport({
+			// 	service: 'gmail',
+			// 	auth: {
+			// 		user: "agenteDomoticaP4@gmail.com",
+			// 		pass: 'holahola1!'
+			// 	}
+			// });
+
+			// var mailOptions = {
+			// 	from: 'agenteDomoticaP4@gmail.com',
+			// 	to: 'agumeri003@hotmail.com',
+			// 	subject: 'Enviando mensaje de prueba.',
+			// 	text: 'AAAAAAA POS MIRA, HA SERVIDO JEJEJEJE'
+			// };
+
+			// client.on('enviar_mensaje',function(mensaje){
+			// 	transporter.sendMail(mailOptions,function(error,info){
+			// 		if(error){
+			// 			console.log(error);
+			// 		}else{
+			// 			console.log("Email sent: " + info.response);
+			// 		}
+			// 	});
+			// });
+
 		});
     });
 });

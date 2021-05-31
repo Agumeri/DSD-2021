@@ -45,7 +45,6 @@
 	var socket = io.connect('http://localhost:8000');
 
 	function actualizaTemperatura() {
-		var d = new Date();
 		var min = document.getElementById("Tmin").value;
 		var max = document.getElementById("Tmax").value;
 
@@ -53,7 +52,6 @@
 			{
 				tmin: min,
 				tmax: max,
-				Time: d,
 				Tipo: "temperatura"
 			}
 		);
@@ -62,13 +60,11 @@
 	}
 
 	function actualizaLuminosidad() {
-		var d = new Date();
 		var min = document.getElementById("Lmin").value;
 		var max = document.getElementById("Lmax").value;
 		// console.log("Min: " + min + "  Max: "+ max);
 		socket.emit('nueva_luminosidad',
 			{
-				Time: d,
 				lmin: min,
 				lmax: max,
 				Tipo: "luminosidad"
@@ -77,6 +73,8 @@
 		alert('Luminosidad actualizada');
 		// location.reload();
 	}
+
+	
 
 	// function resetearBD() {
 	// 	alert('Se va a borrar la base de datos');
