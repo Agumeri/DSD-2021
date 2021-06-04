@@ -45,12 +45,15 @@
             </div>
         </div>
         <div class="col-sm-5 col-md-3" >
-            <div class="card bg-light mb-3" style="max-width: 18rem;">
-                <div class="card-header" style="height: 13.5em;">
-                    <p style="text-align: center;">Enviar información al admin</p>
-                    <!-- <button type="button" class="btn btn-info" onclick="enviarMensaje()">Enviar</button> -->
-                </div>
-                <div class="card-body">
+            <div class="card bg-light mb-3" style="width: 40em;">
+                <div class="card-header" style="height: 17em;">
+                    <h4 style="text-align: center;">Weather Report</h4>
+                    <ul class="list-group list-group-flush">
+                        <li id="day1" class="list-group-item" style="text-align: center;"></li>
+                        <li id="day2" class="list-group-item" style="text-align: center;"></li>
+                        <li id="day3" class="list-group-item" style="text-align: center;"></li>
+                        <li id="day4" class="list-group-item" style="text-align: center;"></li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -100,15 +103,22 @@
         var socket = io.connect(serviceURL);
         var actuadores = {persiana: false, aire: false}
         var mensajes_log = [];
+        var weather_report = [];
     //
 
     // Obtenemos los datos de la BD
     // socket.emit('obtener');
     // socket.emit('log');
+    
+    socket.on('weather',function(wr){
+        weather_report = wr;
+        // console.log(weather_report);
+    });
+    // socket.emit('log',mensajes_log)
+    socket.on('log',function(logs){
+        mensajes_log = logs;
+    });
     socket.on('obtener', function(data){
-        socket.on('log',function(logs){
-            mensajes_log = logs;
-        });
         actualizarValores(data);
     });
 
@@ -168,6 +178,30 @@
             listItem.innerHTML = JSON.stringify(mensajes_log[i]);
             listElement.appendChild(listItem);
         }
+
+
+        // Actualizamos la lista del reporte del clima (weather report)
+        var n = 0;
+        weather_report.forEach(function (dia){
+            let id_dia = "day" + n;
+            if(n<=4 && n!=0){
+                document.getElementById(id_dia).innerHTML = "| " + dia.day + " | " 
+                    + dia.date.split('-').reverse().join('-') + " | "
+                    + "Min: " + dia.low + "ºC Max: " + dia.high + " | "
+                    + dia.skytextday + " | ";
+                n++;
+            }else{
+                n++;
+            }
+        });
+        // for(let i=0; i<4; i++){
+        //     let id_dia = "day" + (i+1);
+        //     document.getElementById(id_dia).innerHTML = "| " + weather_report[i].day + " | " 
+        //         + weather_report[i].date.split('-').reverse().join('-') + " | "
+        //         + "Min: " + weather_report[i].low + "ºC Max: " + weather_report[i].high + " | "
+        //         + weather_report[i].skytextday + " | ";
+        // }
+        // console.log(weather_report.day);
     }
 
     function persiana(){
@@ -190,6 +224,10 @@
 
     function actualizarActuadores(){
         socket.emit('actualizarActuadores',actuadores)
+    }
+
+    function actualizarTiempo(){
+        socket.emit('weather',weather_report)
     }
 
     // function enviarMensaje(){
