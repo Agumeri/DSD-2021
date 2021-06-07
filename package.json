@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "mongodb": "^3.6.6",
-    "s": "^1.0.0",
     "socket.io": "^4.1.1",
     "weather-js": "^2.0.0"
   }

@@ -17,21 +17,22 @@ var TEMP_MIN = "0";
 var LUM_MAX = "100";
 var LUM_MIN = "10";
 
-var tmax="20";
-var tmin="20";
-var lmax="20";
-var lmin="20";
-//
-// Array para mostrar cambios en el cuadro de cambios en el usuario
-var log = [];
-var firstTime = true;
-
 // Valores de los actuadores
 // Apagado/Cerrada == false
 // Encendido/Abierta == true
 var persiana = false;
 var aire_acondicionado = false;
 //
+
+// Variables del servidor
+var tmax="20";
+var tmin="20";
+var lmax="20";
+var lmin="20";
+
+// Array para mostrar cambios en el cuadro de cambios en el usuario
+var log = [];
+
 
 function agente_sistema(){
 	var dia = new Date();
@@ -148,8 +149,6 @@ var bd_name = "mongodb://localhost:27017/";
 // - Si queremos usar la BD local proporcionada por un cluster gratuito:
 // var bd_name = "mongodb+srv://usuariop4:holahola@cluster0.9ngjj.mongodb.net/pruebaBaseDatos?retryWrites=true&w=majority";
 
-
-
 MongoClient.connect(bd_name, {useNewUrlParser: true, useUnifiedTopology: true}, function(err, db) {
 	var dbo = db.db("pruebaBaseDatos");
 	// var dbo = db.db("pruebaBaseDatos");
@@ -162,25 +161,6 @@ MongoClient.connect(bd_name, {useNewUrlParser: true, useUnifiedTopology: true}, 
 		
 		io.sockets.on('connection', function(client) {
 			recogerDatos();
-			
-			// if(datos.length == 0 && firstTime){
-			// 	collection.insertOne({
-			// 		"Tipo": "temperatura",
-			// 		'tmin': tmin,
-			// 		'tmax': tmax
-			// 	});
-			// 	collection.insertOne({
-			// 		"Tipo": "luminosidad",
-			// 		'lmin': lmin,
-			// 		'lmax': lmax
-			// 	});
-			// 	collection.insertOne({
-			// 		"Tipo": "actuadores",
-			// 		'persiana': persiana,
-			// 		'aire_acondicionado': aire_acondicionado
-			// 	});
-			// 	firstTime = false;
-			// }
 			io.emit('obtener',datos);
 			io.emit('weather',semana);
 			
@@ -192,7 +172,6 @@ MongoClient.connect(bd_name, {useNewUrlParser: true, useUnifiedTopology: true}, 
 				if(parseInt(tmax) < parseInt(tmin)){
 					tmin = tmax - 20;
 				}
-
 
 				var dia = new Date();
     			var t = "[" + dia.getDate() + "/" + dia.getMonth() + " | " + dia.getHours() + ":" + dia.getMinutes() + ":" + dia.getSeconds() + "] --> ";

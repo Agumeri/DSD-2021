@@ -1,0 +1,21 @@
+use pruebaBaseDatos
+
+db.createCollection('datos_sensores')
+
+db.datos_sensores.insertOne({
+    "Tipo": "temperatura",
+    "tmax": "34",
+    "tmin": "22"
+})
+
+db.datos_sensores.insertOne({
+    "Tipo": "luminosidad",
+    "lmax": "50",
+    "lmin": "43"
+})
+
+db.datos_sensores.insertOne({
+    "Tipo": "actuadores",
+    "aire_acondicionado": false,
+    persiana: false
+})
